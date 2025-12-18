@@ -391,11 +391,28 @@
                     updateSortButtons(currentSortState);
                 };
 
+                // --- Screen Click Close Logic (Improved) ---
+                let isMouseDownOnOverlay = false;
+
+                window.onmousedown = function (event) {
+                    // Start tracking if the mouse was pressed ON the overlay
+                    if (event.target.classList.contains('modal-overlay')) {
+                        isMouseDownOnOverlay = true;
+                    } else {
+                        isMouseDownOnOverlay = false;
+                    }
+                };
+
                 window.onclick = function (event) {
+                    // Only close if the mouse was pressed down ON the overlay (not dragged from inside)
+                    if (!isMouseDownOnOverlay) return;
+
                     if (event.target == document.getElementById('detailModal')) closeDetailModal();
                     if (event.target == document.getElementById('registModal')) closeRegistModal();
                     if (event.target == document.getElementById('updateModal')) closeUpdateModal();
                     if (event.target == document.getElementById('deleteModal')) closeDeleteModal();
+
+                    isMouseDownOnOverlay = false; // Reset
                 }
 
             </script>
