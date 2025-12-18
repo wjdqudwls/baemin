@@ -24,62 +24,17 @@ public class MenuDAO {
         }
     }
 
-    public List<MenuDTO> selectAllMenus(Connection con, String sort) {
-        PreparedStatement pstmt = null;
-        ResultSet rset = null;
-        List<MenuDTO> menuList = null;
-
-        String queryKey = "selectAllMenus";
-        if (sort != null) {
-            switch (sort) {
-                case "name_asc":
-                    queryKey = "selectAllMenusByNameAsc";
-                    break;
-                case "name_desc":
-                    queryKey = "selectAllMenusByNameDesc";
-                    break;
-                case "price_asc":
-                    queryKey = "selectAllMenusByPriceAsc";
-                    break;
-                case "price_desc":
-                    queryKey = "selectAllMenusByPriceDesc";
-                    break;
-                default:
-                    queryKey = "selectAllMenus";
-                    break;
-            }
-        }
-
-        String query = prop.getProperty(queryKey);
-
-        try {
-            pstmt = con.prepareStatement(query);
-            rset = pstmt.executeQuery();
-
-            menuList = new ArrayList<>();
-
-            while (rset.next()) {
-                MenuDTO menu = new MenuDTO();
-                menu.setMenuCode(rset.getInt("menu_code"));
-                menu.setMenuName(rset.getString("menu_name"));
-                menu.setMenuPrice(rset.getInt("menu_price"));
-                menu.setCategoryCode(rset.getInt("category_code"));
-                menu.setCategoryName(rset.getString("category_name"));
-                menu.setOrderableStatus(rset.getString("orderable_status"));
-
-                menuList.add(menu);
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            JDBCTemplate.close(rset);
-            JDBCTemplate.close(pstmt);
-        }
-
-        return menuList;
-    }
-
+    /**
+     * 고도화된 검색, 필터링, 다중 정렬 기능이 포함된 메뉴 목록 조회용 메서드입니다.
+     * 
+     * @param con            DB 연결 객체
+     * @param searchQuery    검색어 (메뉴 명칭 기준)
+     * @param categoryCode   카테고리 코드 필터링용
+     * @param excludeSoldOut 품절 제외 체크박스 상태
+     * @param nameSort       이름 기준 정렬 상태 (asc, desc, "")
+     * @param priceSort      가격 기준 정렬 상태 (asc, desc, "")
+     * @return 필터링 및 정렬된 메뉴 목록
+     */
     public List<MenuDTO> selectMenusWithFilter(Connection con, String searchQuery, Integer categoryCode,
             boolean excludeSoldOut, String nameSort, String priceSort) {
         PreparedStatement pstmt = null;
@@ -91,11 +46,11 @@ public class MenuDAO {
         try {
             pstmt = con.prepareStatement(query);
 
-            // searchQuery parameters (duplicate for IS NULL and LIKE)
+            // 검색어 바인딩: IS NULL 처리와 LIKE 처리를 위해 두 번 바인딩합니다.
             pstmt.setString(1, searchQuery);
             pstmt.setString(2, searchQuery);
 
-            // categoryCode parameters (duplicate for IS NULL and =)
+            // 카테고리 코드 바인딩: NULL일 경우 DB NULL로 처리하여 필터가 무시되도록 합니다.
             if (categoryCode == null) {
                 pstmt.setNull(3, java.sql.Types.INTEGER);
                 pstmt.setNull(4, java.sql.Types.INTEGER);
@@ -104,10 +59,10 @@ public class MenuDAO {
                 pstmt.setInt(4, categoryCode);
             }
 
-            // excludeSoldOut parameter
+            // 품절 제외 여부 파라미터 (String으로 변환하여 전달)
             pstmt.setString(5, String.valueOf(excludeSoldOut));
 
-            // sort parameters (Case when statements)
+            // 복합 정렬 파라미터 바인딩: SQL의 CASE WHEN 문에 사용됩니다.
             pstmt.setString(6, nameSort);
             pstmt.setString(7, nameSort);
             pstmt.setString(8, priceSort);
@@ -139,6 +94,9 @@ public class MenuDAO {
         return menuList;
     }
 
+    /**
+     * 특정 메뉴 코드로 메뉴 1건의 상세 정보를 조회합니다.
+     */
     public MenuDTO selectMenuById(Connection con, int menuCode) {
         PreparedStatement pstmt = null;
         ResultSet rset = null;
@@ -171,6 +129,9 @@ public class MenuDAO {
         return menu;
     }
 
+    /**
+     * 새로운 메뉴를 데이터베이스에 등록합니다.
+     */
     public int insertMenu(Connection con, MenuDTO menu) {
         PreparedStatement pstmt = null;
         int result = 0;
@@ -195,6 +156,9 @@ public class MenuDAO {
         return result;
     }
 
+    /**
+     * 기존 메뉴 정보를 업데이트합니다.
+     */
     public int updateMenu(Connection con, MenuDTO menu) {
         PreparedStatement pstmt = null;
         int result = 0;
@@ -220,6 +184,9 @@ public class MenuDAO {
         return result;
     }
 
+    /**
+     * 물리적으로 메뉴를 삭제합니다.
+     */
     public int deleteMenu(Connection con, int menuCode) {
         PreparedStatement pstmt = null;
         int result = 0;
@@ -241,6 +208,9 @@ public class MenuDAO {
         return result;
     }
 
+    /**
+     * 전체 카테고리 목록을 조회합니다 (카테고리 필터 및 등록/수정 드롭다운용).
+     */
     public List<com.uahan.menu.model.dto.CategoryDTO> selectAllCategories(Connection con) {
         PreparedStatement pstmt = null;
         ResultSet rset = null;
@@ -272,4 +242,5 @@ public class MenuDAO {
 
         return categoryList;
     }
+
 }

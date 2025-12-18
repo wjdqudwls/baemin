@@ -1,13 +1,16 @@
 package com.uahan.menu.model.dto;
 
+/**
+ * 메뉴 정보를 담아 전달하는 데이터 가방(DTO) 클래스입니다.
+ */
 public class MenuDTO {
 
-    private int menuCode;
-    private String menuName;
-    private int menuPrice;
-    private int categoryCode;
-    private String categoryName;
-    private String orderableStatus;
+    private int menuCode; // 메뉴 고유 번호
+    private String menuName; // 메뉴 이름
+    private int menuPrice; // 메뉴 가격
+    private int categoryCode; // 카테고리 코드 (카테고리 테이블과 연결)
+    private String categoryName; // 카테고리 이름 (조인 결과 저장용)
+    private String orderableStatus; // 판매 가능 여부 ('Y' / 'N')
 
     public MenuDTO() {
     }

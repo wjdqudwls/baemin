@@ -13,31 +13,34 @@
 
             <div class="container">
                 <header>
-                    <a href="${pageContext.request.contextPath}/" class="header-btn">‹ 홈</a>
-                    <h1>메뉴 관리</h1>
-                    <div style="width: 30px;"></div> <!-- Spacer -->
+                    <%-- 홈 화면으로 돌아가는 버튼 --%>
+                        <a href="${pageContext.request.contextPath}/" class="header-btn">‹ 홈</a>
+                        <h1>메뉴 관리</h1>
+                        <div style="width: 30px;"></div> <!-- 정렬을 위한 공간 보정용 -->
                 </header>
 
-                <!-- Filter and Search Controls -->
+                <!-- 필터 및 검색 컨트롤 영역 -->
                 <div class="filter-search-controls">
-                    <!-- Menu Count Display -->
+                    <!-- 현재 표시된 메뉴 개수 (실시간 업데이트) -->
                     <div class="menu-count-display">
                         총 <span id="menuCount">${menuList.size()}</span>개 메뉴
                     </div>
                     <div class="search-filter-row">
-                        <select id="categoryFilter" class="category-filter" onchange="performSearch()">
-                            <option value="">전체</option>
-                            <c:forEach var="category" items="${categoryList}">
-                                <option value="${category.categoryCode}">${category.categoryName}</option>
-                            </c:forEach>
-                        </select>
-                        <div class="search-box">
-                            <input type="text" id="searchInput" class="search-input" placeholder="메뉴 이름 검색..."
-                                onkeypress="if(event.key==='Enter') performSearch()">
-                            <button class="search-btn" onclick="performSearch()" title="검색">검색</button>
-                        </div>
+                        <%-- 카테고리 필터 드롭다운: 변경 시 performSearch() 호출하여 서버에서 목록 조회 --%>
+                            <select id="categoryFilter" class="category-filter" onchange="performSearch()">
+                                <option value="">전체</option>
+                                <c:forEach var="category" items="${categoryList}">
+                                    <option value="${category.categoryCode}">${category.categoryName}</option>
+                                </c:forEach>
+                            </select>
+                            <%-- 이름 검색창: 엔터키 입력 시 검색 실행 --%>
+                                <div class="search-box">
+                                    <input type="text" id="searchInput" class="search-input" placeholder="메뉴 이름 검색..."
+                                        onkeypress="if(event.key==='Enter') performSearch()">
+                                    <button class="search-btn" onclick="performSearch()" title="검색">검색</button>
+                                </div>
                     </div>
-                    <!-- Sold-out Filter Checkbox -->
+                    <!-- 품절 제외 필터: 체크 시 판매 중인 메뉴만 조회 -->
                     <div class="exclude-soldout-container">
                         <label class="exclude-soldout-wrapper">
                             <input type="checkbox" id="excludeSoldOut" onchange="performSearch()">
@@ -45,25 +48,27 @@
                             품절 제외
                         </label>
                     </div>
-                    <div class="sort-controls">
-                        <button class="sort-btn" id="sortName" onclick="toggleSort('name')">이름순</button>
-                        <button class="sort-btn" id="sortPrice" onclick="toggleSort('price')">가격순</button>
-                    </div>
+                    <%-- 다중 정렬 버튼: 이름순, 가격순을 조합하여 정렬 가능 --%>
+                        <div class="sort-controls">
+                            <button class="sort-btn" id="sortName" onclick="toggleSort('name')">이름순</button>
+                            <button class="sort-btn" id="sortPrice" onclick="toggleSort('price')">가격순</button>
+                        </div>
                 </div>
 
-                <div class="menu-list" id="menuListContainer">
-                    <jsp:include page="list_content.jsp" />
-                </div>
-
-                <!-- Floating Action Button for Registration -->
-                <button onclick="openRegistModal()" class="fab" style="border:none;">+</button>
-
-                <footer class="site-footer">
-                    <div class="footer-content">
-                        <p class="footer-team">1팀 | 팀원: 정진호 윤성원 정병진 최현지</p>
-                        <p class="footer-copy">Copyright © Baemin Corp. All rights reserved.</p>
+                <%-- 메뉴 카드들이 들어갈 컨테이너 (AJAX 요청 시 이 영역의 HTML만 교체됨) --%>
+                    <div class="menu-list" id="menuListContainer">
+                        <jsp:include page="list_content.jsp" />
                     </div>
-                </footer>
+
+                    <!-- Floating Action Button for Registration -->
+                    <button onclick="openRegistModal()" class="fab" style="border:none;">+</button>
+
+                    <footer class="site-footer">
+                        <div class="footer-content">
+                            <p class="footer-team">1팀 | 팀원: 정진호 윤성원 정병진 최현지</p>
+                            <p class="footer-copy">Copyright © Baemin Corp. All rights reserved.</p>
+                        </div>
+                    </footer>
             </div>
 
             <!-- Toast Notification -->
@@ -196,7 +201,7 @@
             </div>
 
             <script>
-                // --- Notification Toast ---
+                // --- 알림 토스트 (Toast) 기능 ---
                 function showToast(message, type) {
                     const toast = document.getElementById('toast');
                     toast.innerText = message;
@@ -204,10 +209,11 @@
 
                     setTimeout(function () {
                         toast.className = toast.className.replace('show', '');
-                    }, 3000); // Hide after 3 seconds
+                    }, 3000); // 3초 뒤 자동 숨김
                 }
 
-                // --- Common AJAX Handler ---
+                // --- 공통 AJAX 처리 함수 ---
+                // 서버에 데이터를 전송하고 성공 여부에 따라 화면을 갱신합니다.
                 function sendAjax(url, formData, successMsg, failMsg, onSuccess) {
                     const params = new URLSearchParams(formData);
 
@@ -224,7 +230,7 @@
                             if (result.trim() === 'success') {
                                 showToast(successMsg, 'success');
                                 closeAllModals();
-                                performSearch(); // Use performSearch to preserve filters
+                                performSearch(); // 현재 필터 상태를 유지하며 목록 갱신
                                 if (onSuccess) onSuccess();
                             } else {
                                 showToast(failMsg, 'error');
